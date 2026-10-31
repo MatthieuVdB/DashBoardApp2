@@ -191,8 +191,10 @@ routes.forEach((route, index) => {
 </div>
     <div class="ticket-main">
       <div class="route">
-        <span class="icon" aria-hidden="true">${route.icon}</span>
-        <span class="badge line-${route.line}">${route.line}</span>
+        <div class="route-top">
+          <span class="icon" aria-hidden="true">${route.icon}</span>
+          <span class="badge line-${route.line}">${route.line}</span>
+        </div>
         <h3 class="destination">${route.destination}</h3>
       </div>
       <div class="departure">--:--</div>
@@ -263,7 +265,7 @@ async function transport() {
         .filter(call => Number.isFinite(call.time)).sort((a, b) => a.time - b.time);
     });
     updated = Date.now();
-    $("transport-status").textContent = `Entur updated at ${time(updated)} · ${CONFIG.walkMinutes}-minute walk to Bekkestua`;
+    $("transport-status").textContent = "";
   } catch (error) {
     $("transport-status").textContent = `Transport update failed: ${error.message}. ` +
       (updated ? "Previously loaded departures retained until stale." : "No departure data loaded yet.");
@@ -309,7 +311,8 @@ function render() {
           state = "leave-now"; progress = 1; status.textContent = "LEAVE NOW";
         } else {
           const minutesUntilLeave = Math.max(1, Math.ceil(remaining - CONFIG.walkMinutes));
-          status.textContent = `LEAVE IN ${minutesUntilLeave} MIN`;
+          status.innerHTML =
+            `Leave in<span class="leave-minutes">${minutesUntilLeave}</span>min`;
           if (remaining <= CONFIG.yellowMinutes) state = "warning";
           progress = Math.max(0, Math.min(1,
             1 - (remaining - CONFIG.walkMinutes) / CONFIG.blueFillWindowMinutes));
@@ -567,107 +570,41 @@ if ("serviceWorker" in navigator && window.isSecureContext) {
 }
 
 
-/* 16. SWIPE SCREENS */
-const SCREEN_ORDER = ["all", "weather", "transport"];
-
-const screenDots = $("screen-dots");
-
-
-SCREEN_ORDER.forEach((name, index) => {
-  const dot = document.createElement("span");
-  dot.className = "screen-dot";
-  dot.dataset.screen = name;
-  screenDots.append(dot);
-});
-
+/* 16. SWIPE SCREENS — FORECAST AND TRANSPORT */
+const SCREEN_ORDER = ["forecast", "transport"];
 let currentScreenIndex = 0;
 let swipeStartX = 0;
 let swipeStartY = 0;
 let swipeActive = false;
 
+
 function layoutScreen(name) {
-  const weatherPanel = $("weather-panel");
   const forecastPanel = $("forecast-panel");
   const tickets = $("tickets");
   const transportStatus = $("transport-status");
-  const clockPanel = $("clock-panel");
-  const assistantPanel = weatherPanel.querySelector(".panel:last-child");
-  const appScreens = $("app-screens");
   const target = $(`screen-${name}`);
 
 
   if (!target) return;
 
 
-  if (name === "all") {
-    /* All screen: weather | clock | assistant */
-    weatherPanel.classList.add("top");
-    weatherPanel.classList.remove("weather-only");
-
-
-    assistantPanel.hidden = false;
-
-
-    /* Put the clock back in the middle. */
-    weatherPanel.insertBefore(
-      clockPanel,
-      weatherPanel.children[1]
-    );
-
-
-    target.append(weatherPanel, forecastPanel, tickets, transportStatus);
-
-
-    weatherPanel.hidden = false;
+  if (name === "forecast") {
+    target.append(forecastPanel);
     forecastPanel.hidden = false;
-    tickets.hidden = false;
-    transportStatus.hidden = false;
   }
-
-
-if (name === "weather") {
-  /* Weather screen: clock | current weather, no assistant */
-  weatherPanel.classList.add("top");
-  weatherPanel.classList.add("weather-only");
-
-
-  assistantPanel.hidden = true;
-
-
-  /* Clock first, current weather second. */
-  weatherPanel.prepend(clockPanel);
-
-
-  target.append(weatherPanel, forecastPanel);
-
-
-  weatherPanel.hidden = false;
-  forecastPanel.hidden = false;
-}
 
 
   if (name === "transport") {
-    /* Transport screen: clock above, tickets below */
-    appScreens.before(clockPanel);
-
-
     target.append(tickets, transportStatus);
-
-
     tickets.hidden = false;
     transportStatus.hidden = false;
   }
 }
 
-function updateScreenDots() {
-  document.querySelectorAll(".screen-dot").forEach((dot, index) => {
-    dot.classList.toggle("active", index === currentScreenIndex);
-  });
-}
 
+function showScreen(index, direction = "forward") {
+  currentScreenIndex = (index + SCREEN_ORDER.length) % SCREEN_ORDER.length;
 
-function showScreen(index) {
-  currentScreenIndex = Math.max(0, Math.min(SCREEN_ORDER.length - 1, index));
   const name = SCREEN_ORDER[currentScreenIndex];
 
 
@@ -679,14 +616,17 @@ function showScreen(index) {
     screen.classList.remove("active", "left", "right");
 
 
-    if (screenName === name) screen.classList.add("active");
-    else if (SCREEN_ORDER.indexOf(screenName) < currentScreenIndex) screen.classList.add("left");
-    else screen.classList.add("right");
+    if (screenName === name) {
+      screen.classList.add("active");
+    } else if (direction === "forward") {
+      screen.classList.add("right");
+    } else {
+      screen.classList.add("left");
+    }
   });
 
 
   layoutScreen(name);
-  updateScreenDots();
   localStorage.setItem("dashboardScreen", name);
 }
 
@@ -710,23 +650,31 @@ document.addEventListener("touchend", event => {
   if (Math.abs(deltaX) < 60 || Math.abs(deltaY) > Math.abs(deltaX)) return;
 
 
-  if (deltaX < 0) showScreen(currentScreenIndex + 1);
-  else showScreen(currentScreenIndex - 1);
+  if (deltaX < 0) {
+    showScreen(currentScreenIndex + 1, "forward");
+  } else {
+    showScreen(currentScreenIndex - 1, "backward");
+  }
 });
+
 
 /* Arrow-key navigation for PC */
 document.addEventListener("keydown", event => {
   if (event.key === "ArrowRight") {
-    showScreen(currentScreenIndex + 1);
+    showScreen(currentScreenIndex + 1, "forward");
   } else if (event.key === "ArrowLeft") {
-    showScreen(currentScreenIndex - 1);
+    showScreen(currentScreenIndex - 1, "backward");
   }
 });
 
+
+
 /* 17. STARTUP */
+const savedScreen = localStorage.getItem("dashboardScreen");
+const savedIndex = SCREEN_ORDER.indexOf(savedScreen);
+showScreen(savedIndex === -1 ? 0 : savedIndex);
 clock();
 connection();
-showScreen(Number(localStorage.getItem("dashboardScreenIndex") ?? 0) || 0);
 transport();
 weather();
 

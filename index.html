@@ -14,60 +14,42 @@
 </head>
 
 <body>
+
 <main>
 
-  <!-- Clock stays visible on every screen -->
+<!-- Top third: always visible -->
+<section class="top" id="top-panel">
   <div class="panel clock-panel" id="clock-panel">
     <div id="clock">--:--</div>
     <div id="date"></div>
   </div>
 
-  <!-- Swipeable area -->
-  <div id="app-screens">
-
-    <!-- Screen 1: everything -->
-    <section class="screen active" id="screen-all" aria-label="All dashboard information"></section>
-
-    <!-- Screen 2: weather only -->
-    <section class="screen" id="screen-weather" aria-label="Weather dashboard"></section>
-
-    <!-- Screen 3: transport only -->
-    <section class="screen" id="screen-transport" aria-label="Transport dashboard"></section>
-
-  </div>
-
-
-  <div class="screen-dots" id="screen-dots" aria-hidden="true"></div>
-
-  <!-- These existing panels are moved into the correct screen by app.js -->
-  <section class="top" id="weather-panel" hidden>
   <div class="panel" id="current-weather-panel">
     <h2>Current weather · Bekkestua</h2>
-      <div class="weather">
-        <div id="weather-icon">⏳</div>
-        <div>
-          <div id="temp">--°</div>
-          <div id="conditions">Loading weather…</div>
-        </div>
-      </div>
-      <div class="details">
-        <div>Feels like<strong id="feels">--°</strong></div>
-        <div>Wind<strong id="wind">-- m/s</strong></div>
-        <div>Precipitation<strong id="rain">-- mm</strong></div>
+
+    <div class="weather">
+      <div id="weather-icon">⏳</div>
+      <div>
+        <div id="temp">--°</div>
+        <div id="conditions">Loading weather…</div>
       </div>
     </div>
 
-    <div class="panel">
-      <h2>Duck assistant</h2>
-      <div class="assistant">
-        <div>
-          <strong>Ready when you are</strong>
-          <span>Assistant placeholder<br>Voice connection not active.</span>
-        </div>
-      </div>
+    <div class="details">
+      <div>Feels like<strong id="feels">--°</strong></div>
+      <div>Wind<strong id="wind">-- m/s</strong></div>
+      <div>Precipitation<strong id="rain">-- mm</strong></div>
     </div>
-  </section>
+  </div>
+</section>
 
+  <!-- Bottom two-thirds: swipeable -->
+  <div id="app-screens">
+    <section class="screen active" id="screen-forecast" aria-label="Weather forecast"></section>
+    <section class="screen" id="screen-transport" aria-label="Transport departures"></section>
+  </div>
+
+  <!-- Moved into the correct screen by app.js -->
   <section class="panel forecast" id="forecast-panel" hidden>
     <div class="forecast-header">
       <h2>Next 24 hours</h2>
@@ -89,11 +71,6 @@
   <section class="tickets" id="tickets" aria-label="Bekkestua departures" hidden></section>
 
   <p class="note footer" id="transport-status" hidden>Loading departures from Entur…</p>
-
-  <div class="app-tools">
-    <button id="install" hidden>Install app</button>
-    <button id="refresh" type="button">Refresh data</button>
-  </div>
 
   <p class="note" id="connection" role="status"></p>
 
