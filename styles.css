@@ -164,10 +164,10 @@ h2 {
   overscroll-behavior: contain;
 
 
-  transition: transform 0.35s ease, opacity 0.35s ease;
+  /*transition: transform 0.35s ease, opacity 0.35s ease;
+  will-change: transform, opacity;*/
+  transition: none;
 
-
-  will-change: transform, opacity;
 }
 
 
@@ -1613,7 +1613,7 @@ main {
   overflow: hidden;
 
 
-  transition: transform 0.35s ease, opacity 0.35s ease;
+  transition: none;
 }
 
 

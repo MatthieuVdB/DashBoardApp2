@@ -460,8 +460,8 @@ function forecast(hourly, daily) {
         {
           type: "line", label: "Temperature °C", data: temperaturePoints,
           borderColor: INK.text, backgroundColor: INK.text,
-          fill: false, tension: 0.35, pointRadius: 0, pointHoverRadius: 4,
-          borderWidth: 3, yAxisID: "temperature", order: 1
+          fill: false, tension: 0.35, pointRadius: 0, pointHoverRadius: 8,
+          borderWidth: 6, yAxisID: "temperature", order: 1
         },
         {
           type: "bar", label: "Precipitation mm", data: precipitationPoints,
@@ -503,22 +503,44 @@ function forecast(hourly, daily) {
           type: "linear", min: start, max: end, offset: false,
           ticks: {
             stepSize: 2 * HOUR, color: INK.muted,
-            font: { size: 14, weight: "bold", family: '"Courier New", monospace' },
+            font: { size: 22, weight: "bold", family: '"Courier New", monospace' },
             maxRotation: 0,
-            callback(value) { return time(Number(value)); }
+            callback(value) {
+              const date = new Date(Number(value));
+
+              return date
+                .toLocaleTimeString("en-GB", {
+                  hour: "numeric",
+                  hour12: true,
+                  timeZone: CONFIG.timeZone
+                })
+                .toLowerCase()
+                .replace(" ", "");
+            }
           },
           grid: { color: "#ffffff08" }, border: { color: INK.border }
         },
         temperature: {
           position: "left", min: temperatureAxisMin, max: temperatureAxisMax,
-          title: { display: true, text: "Temperature °C", color: INK.muted },
-          ticks: { color: INK.text, stepSize: 2, font: { size: 16, weight: "bold" } },
-          grid: { color: INK.grid }, border: { color: INK.border }
+          title: {
+            display: true,
+            text: "Temperature °C",
+            color: INK.muted,
+            font: { size: 13, weight: "bold" }
+          },
+          ticks: {
+            color: INK.text,
+            stepSize: 2,
+            font: { size: 34, weight: "bold" },
+            padding: 10
+          },
+          grid: { color: INK.grid },
+          border: { color: INK.border }
         },
         precipitation: {
           position: "right", min: 0, suggestedMax: 5,
           title: { display: true, text: "Precipitation mm / hour", color: INK.muted },
-          ticks: { color: INK.muted, maxTicksLimit: 6, font: { size: 16, weight: "bold" } },
+          ticks: { color: INK.muted, maxTicksLimit: 6, font: { size: 32, weight: "bold" } },
           grid: { drawOnChartArea: false }, border: { color: INK.border }
         }
       }
